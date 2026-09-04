@@ -2914,19 +2914,8 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) unmarshalNBanned2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐBanned(ctx context.Context, v any) (model.Banned, error) {
-	var res model.Banned
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalNBanned2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐBanned(ctx context.Context, sel ast.SelectionSet, v model.Banned) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
-	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.SelectionSet, v bool) graphql.Marshaler {
@@ -2945,23 +2934,6 @@ func (ec *executionContext) unmarshalNDarkMode2ᚖgithubᚗcomᚋ99designsᚋgql
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNDarkMode2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPrefs(ctx context.Context, sel ast.SelectionSet, v *model.Prefs) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	_ = sel
-	res := model.MarshalPreferences(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) unmarshalNID2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋexternalᚐObjectID(ctx context.Context, v any) (external.ObjectID, error) {
 	res, err := model.UnmarshalID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -2976,12 +2948,6 @@ func (ec *executionContext) marshalNID2githubᚗcomᚋ99designsᚋgqlgenᚋ_exam
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalNPoint2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPoint(ctx context.Context, v any) (*model.Point, error) {
-	var res = new(model.Point)
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNPoint2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPoint(ctx context.Context, sel ast.SelectionSet, v *model.Point) graphql.Marshaler {
@@ -3014,10 +2980,6 @@ func (ec *executionContext) unmarshalNTier2githubᚗcomᚋ99designsᚋgqlgenᚋ_
 	var res model.Tier
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNTier2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐTier(ctx context.Context, sel ast.SelectionSet, v model.Tier) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalNUser2ᚕᚖgithubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐUserᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.User) graphql.Marshaler {
@@ -3066,11 +3028,6 @@ func (ec *executionContext) marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgq
 	return ret
 }
 
-func (ec *executionContext) unmarshalN__DirectiveLocation2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
@@ -3080,20 +3037,6 @@ func (ec *executionContext) marshalN__DirectiveLocation2string(ctx context.Conte
 		}
 	}
 	return res
-}
-
-func (ec *executionContext) unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, v any) ([]string, error) {
-	vSlice := graphql.CoerceList(v)
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalN__DirectiveLocation2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) marshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
@@ -3170,11 +3113,6 @@ func (ec *executionContext) marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgen�
 	return ec.___Type(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalN__TypeKind2string(ctx context.Context, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
@@ -3194,10 +3132,6 @@ func (ec *executionContext) unmarshalOBanned2githubᚗcomᚋ99designsᚋgqlgen�
 	var res model.Banned
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOBanned2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐBanned(ctx context.Context, sel ast.SelectionSet, v model.Banned) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
@@ -3220,34 +3154,11 @@ func (ec *executionContext) unmarshalOBoolean2ᚖbool(ctx context.Context, v any
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast.SelectionSet, v *bool) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	_ = sel
-	_ = ctx
-	res := graphql.MarshalBoolean(*v)
-	return res
-}
-
-func (ec *executionContext) unmarshalODarkMode2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPrefs(ctx context.Context, v any) (model.Prefs, error) {
-	res, err := model.UnmarshalPreferences(v)
-	return *res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalODarkMode2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPrefs(ctx context.Context, sel ast.SelectionSet, v model.Prefs) graphql.Marshaler {
 	_ = sel
 	_ = ctx
 	res := model.MarshalPreferences(&v)
 	return res
-}
-
-func (ec *executionContext) unmarshalODarkMode2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPrefs(ctx context.Context, v any) (*model.Prefs, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := model.UnmarshalPreferences(v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalODarkMode2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐPrefs(ctx context.Context, sel ast.SelectionSet, v *model.Prefs) graphql.Marshaler {
@@ -3284,14 +3195,6 @@ func (ec *executionContext) unmarshalOSearchArgs2ᚖgithubᚗcomᚋ99designsᚋg
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -3302,19 +3205,8 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOTier2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐTier(ctx context.Context, v any) (model.Tier, error) {
-	var res model.Tier
-	err := res.UnmarshalGQL(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalOTier2githubᚗcomᚋ99designsᚋgqlgenᚋ_examplesᚋscalarsᚋmodelᚐTier(ctx context.Context, sel ast.SelectionSet, v model.Tier) graphql.Marshaler {
 	return v
-}
-
-func (ec *executionContext) unmarshalOTimestamp2timeᚐTime(ctx context.Context, v any) (time.Time, error) {
-	res, err := model.UnmarshalTimestamp(v)
-	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOTimestamp2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {

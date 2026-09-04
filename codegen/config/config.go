@@ -260,6 +260,9 @@ func CompleteConfig(config *Config) error {
 		"deprecated":  {SkipRuntime: true},
 		"specifiedBy": {SkipRuntime: true},
 		"oneOf":       {SkipRuntime: true},
+		// @defer is handled by the executor while collecting fields, never
+		// dispatched through the generated directive machinery.
+		"defer": {SkipRuntime: true},
 	}
 
 	for key, value := range defaultDirectives {

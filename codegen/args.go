@@ -55,7 +55,7 @@ func (f *FieldArgument) Stream() bool {
 }
 
 func (b *builder) buildArg(obj *Object, arg *ast.ArgumentDefinition) (*FieldArgument, error) {
-	tr, err := b.Binder.TypeReference(arg.Type, nil)
+	tr, err := b.Binder.TypeReferenceFor(config.RefInput, arg.Type, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +99,7 @@ nextArg:
 		param := params.At(j)
 		for _, oldArg := range field.Args {
 			if strings.EqualFold(oldArg.Name, param.Name()) {
-				tr, err := b.Binder.TypeReference(oldArg.Type, param.Type())
+				tr, err := b.Binder.TypeReferenceFor(config.RefInput, oldArg.Type, param.Type())
 				if err != nil {
 					return nil, err
 				}

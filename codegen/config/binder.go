@@ -217,21 +217,43 @@ func (b *Binder) ReplaceWithPointer(ref *TypeReference) *TypeReference {
 	return newRef
 }
 
+// RefDirection records the positions a type reference is reached from. A type
+// is unmarshalled only when it appears in an input position (argument, input
+// object field, directive argument) and marshalled only when it appears in an
+// output position (field result), so the generator emits just the half of the
+// marshaler pair that is actually reachable.
+type RefDirection uint8
+
+const (
+	RefInput RefDirection = 1 << iota
+	RefOutput
+
+	// RefNone is for references that are registered but never marshalled in
+	// either direction, such as the String reference borrowed for its marshaler
+	// funcs when binding a custom scalar.
+	RefNone RefDirection = 0
+
+	// RefBoth is the conservative default of Binder.TypeReference, which cannot
+	// know where its caller intends to use the reference.
+	RefBoth = RefInput | RefOutput
+)
+
 // TypeReference is used by args and field types. The Definition can refer to both input and output
 // types.
 type TypeReference struct {
 	Definition               *ast.Definition
 	GQL                      *ast.Type
-	GO                       types.Type  // Type of the field being bound. Could be a pointer or a value type of Target.
-	Target                   types.Type  // The actual type that we know how to bind to. May require pointer juggling when traversing to fields.
-	CastType                 types.Type  // Before calling marshalling functions cast from/to this base type
-	Marshaler                *types.Func // When using external marshalling functions this will point to the Marshal function
-	Unmarshaler              *types.Func // When using external marshalling functions this will point to the Unmarshal function
-	IsMarshaler              bool        // Does the type implement graphql.Marshaler and graphql.Unmarshaler
-	IsOmittable              bool        // Is the type wrapped with Omittable
-	IsContext                bool        // Is the Marshaler/Unmarshaller the context version; applies to either the method or interface variety.
-	PointersInUnmarshalInput bool        // Inverse values and pointers in return.
-	IsRoot                   bool        // Is the type a root level definition such as Query, Mutation or Subscription
+	GO                       types.Type   // Type of the field being bound. Could be a pointer or a value type of Target.
+	Target                   types.Type   // The actual type that we know how to bind to. May require pointer juggling when traversing to fields.
+	CastType                 types.Type   // Before calling marshalling functions cast from/to this base type
+	Marshaler                *types.Func  // When using external marshalling functions this will point to the Marshal function
+	Unmarshaler              *types.Func  // When using external marshalling functions this will point to the Unmarshal function
+	IsMarshaler              bool         // Does the type implement graphql.Marshaler and graphql.Unmarshaler
+	IsOmittable              bool         // Is the type wrapped with Omittable
+	IsContext                bool         // Is the Marshaler/Unmarshaller the context version; applies to either the method or interface variety.
+	PointersInUnmarshalInput bool         // Inverse values and pointers in return.
+	IsRoot                   bool         // Is the type a root level definition such as Query, Mutation or Subscription
+	Directions               RefDirection // Positions this reference is reached from; selects which of the marshal/unmarshal pair is emitted
 	EnumValues               []EnumValueReference
 }
 
@@ -334,6 +356,10 @@ func (ref *TypeReference) MarshalFunc() string {
 		return ""
 	}
 
+	if ref.Directions&RefOutput == 0 {
+		return ""
+	}
+
 	return "marshal" + ref.UniquenessKey()
 }
 
@@ -347,6 +373,10 @@ func (ref *TypeReference) UnmarshalFunc() string {
 	}
 
 	if !ref.Definition.IsInputType() {
+		return ""
+	}
+
+	if ref.Directions&RefInput == 0 {
 		return ""
 	}
 
@@ -417,7 +447,22 @@ func unwrapOmittable(t types.Type) (types.Type, bool) {
 	return named.TypeArgs().At(0), true
 }
 
+// TypeReference resolves schemaType against bindTarget without knowing where the
+// result will be used, so the reference is marked as reachable from both an
+// input and an output position. Prefer TypeReferenceFor when the position is
+// known: references that are only ever unmarshalled or only ever marshalled
+// then get just the one function they need.
 func (b *Binder) TypeReference(
+	schemaType *ast.Type,
+	bindTarget types.Type,
+) (*TypeReference, error) {
+	return b.TypeReferenceFor(RefBoth, schemaType, bindTarget)
+}
+
+// TypeReferenceFor is TypeReference for a caller that knows whether the
+// reference is reached from an input or an output position.
+func (b *Binder) TypeReferenceFor(
+	dir RefDirection,
 	schemaType *ast.Type,
 	bindTarget types.Type,
 ) (ret *TypeReference, err error) {
@@ -429,7 +474,7 @@ func (b *Binder) TypeReference(
 			return nil, fmt.Errorf("%s is wrapped with Omittable but non-null", schemaType.Name())
 		}
 
-		ref, err := b.TypeReference(schemaType, innerType)
+		ref, err := b.TypeReferenceFor(dir, schemaType, innerType)
 		if err != nil {
 			return nil, err
 		}
@@ -465,6 +510,7 @@ func (b *Binder) TypeReference(
 				GQL:        schemaType,
 				GO:         b.CopyModifiersFromAst(schemaType, MapType),
 				IsRoot:     b.cfg.IsRoot(def),
+				Directions: dir,
 			}, nil
 		}
 
@@ -477,6 +523,7 @@ func (b *Binder) TypeReference(
 				GQL:        schemaType,
 				GO:         b.CopyModifiersFromAst(schemaType, InterfaceType),
 				IsRoot:     b.cfg.IsRoot(def),
+				Directions: dir,
 			}, nil
 		}
 
@@ -489,6 +536,7 @@ func (b *Binder) TypeReference(
 			Definition: def,
 			GQL:        schemaType,
 			IsRoot:     b.cfg.IsRoot(def),
+			Directions: dir,
 		}
 
 		obj, err := b.FindObject(pkgName, typeName)
@@ -522,7 +570,7 @@ func (b *Binder) TypeReference(
 			ref.GO = t
 			ref.CastType = underlying
 
-			underlyingRef, err := b.TypeReference(&ast.Type{NamedType: "String"}, nil)
+			underlyingRef, err := b.TypeReferenceFor(RefNone, &ast.Type{NamedType: "String"}, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -686,7 +734,7 @@ func (b *Binder) enumReference(
 		ref.GO = t
 	}
 
-	str, err := b.TypeReference(&ast.Type{NamedType: "String"}, nil)
+	str, err := b.TypeReferenceFor(RefNone, &ast.Type{NamedType: "String"}, nil)
 	if err != nil {
 		return err
 	}

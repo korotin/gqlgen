@@ -848,10 +848,6 @@ func (ec *executionContext) unmarshalNOrderDirection2githubᚗcomᚋ99designsᚋ
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNOrderDirection2githubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋbenchmarkᚋgeneratedᚋmodelsᚐOrderDirection(ctx context.Context, sel ast.SelectionSet, v models.OrderDirection) graphql.Marshaler {
-	return v
-}
-
 func (ec *executionContext) marshalNPageInfo2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋbenchmarkᚋgeneratedᚋmodelsᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v *models.PageInfo) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
@@ -907,10 +903,6 @@ func (ec *executionContext) unmarshalNUserOrderField2githubᚗcomᚋ99designsᚋ
 	var res models.UserOrderField
 	err := res.UnmarshalGQL(v)
 	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUserOrderField2githubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋbenchmarkᚋgeneratedᚋmodelsᚐUserOrderField(ctx context.Context, sel ast.SelectionSet, v models.UserOrderField) graphql.Marshaler {
-	return v
 }
 
 func (ec *executionContext) marshalOUserConnection2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋbenchmarkᚋgeneratedᚋmodelsᚐUserConnection(ctx context.Context, sel ast.SelectionSet, v *models.UserConnection) graphql.Marshaler {

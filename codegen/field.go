@@ -123,10 +123,20 @@ func (b *builder) buildField(obj *Object, field *ast.FieldDefinition) (*Field, e
 	return &f, nil
 }
 
+// fieldRefDirection reports the position the fields of obj are reached from:
+// input object fields are only ever unmarshalled, every other object's fields
+// are only ever marshalled.
+func fieldRefDirection(obj *Object) config.RefDirection {
+	if obj.Kind == ast.InputObject {
+		return config.RefInput
+	}
+	return config.RefOutput
+}
+
 func (b *builder) bindField(obj *Object, f *Field) (errret error) {
 	defer func() {
 		if f.TypeReference == nil {
-			tr, err := b.Binder.TypeReference(f.Type, nil)
+			tr, err := b.Binder.TypeReferenceFor(fieldRefDirection(obj), f.Type, nil)
 			if err != nil {
 				errret = err
 			}
@@ -261,7 +271,7 @@ func (b *builder) bindField(obj *Object, f *Field) (errret error) {
 
 		// Try to match target function's return types with GraphQL field return type
 		result := sig.Results().At(0)
-		tr, err := b.Binder.TypeReference(f.Type, result.Type())
+		tr, err := b.Binder.TypeReferenceFor(fieldRefDirection(obj), f.Type, result.Type())
 		if err != nil {
 			return err
 		}
@@ -275,7 +285,7 @@ func (b *builder) bindField(obj *Object, f *Field) (errret error) {
 
 		return nil
 	case *types.Var:
-		tr, err := b.Binder.TypeReference(f.Type, target.Type())
+		tr, err := b.Binder.TypeReferenceFor(fieldRefDirection(obj), f.Type, target.Type())
 		if err != nil {
 			return err
 		}

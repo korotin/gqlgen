@@ -142,14 +142,6 @@ func (ec *executionContext) marshalNPtrToAnyContainer2ᚖgithubᚗcomᚋ99design
 	return ec._PtrToAnyContainer(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalOAny2interface(ctx context.Context, v any) (any, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalAny(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.SelectionSet, v any) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -158,14 +150,6 @@ func (ec *executionContext) marshalOAny2interface(ctx context.Context, sel ast.S
 	_ = ctx
 	res := graphql.MarshalAny(v)
 	return res
-}
-
-func (ec *executionContext) unmarshalOAny2ᚖinterface(ctx context.Context, v any) (*any, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOAny2interface(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalOAny2ᚖinterface(ctx context.Context, sel ast.SelectionSet, v *any) graphql.Marshaler {

@@ -58,9 +58,18 @@ func (b *builder) buildDirectives() (map[string]*Directive, error) {
 			return nil, fmt.Errorf("directive with name %s already exists", name)
 		}
 
+		dirCfg := b.Config.Directives[name]
+		// Arguments of a directive with no runtime implementation are never
+		// unmarshalled: ImplDirectives and Data.AllDirectives both drop such a
+		// directive, so no call to their unmarshalers is generated.
+		argDir := config.RefInput
+		if dirCfg.SkipRuntime {
+			argDir = config.RefNone
+		}
+
 		var args []*FieldArgument
 		for _, arg := range dir.Arguments {
-			tr, err := b.Binder.TypeReference(arg.Type, nil)
+			tr, err := b.Binder.TypeReferenceFor(argDir, arg.Type, nil)
 			if err != nil {
 				return nil, err
 			}
@@ -90,7 +99,7 @@ func (b *builder) buildDirectives() (map[string]*Directive, error) {
 			DirectiveDefinition: dir,
 			Name:                name,
 			Args:                args,
-			DirectiveConfig:     b.Config.Directives[name],
+			DirectiveConfig:     dirCfg,
 		}
 	}
 

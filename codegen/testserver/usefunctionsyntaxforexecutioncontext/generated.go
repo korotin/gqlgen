@@ -3343,11 +3343,6 @@ func ___Type(ctx context.Context, ec *executionContext, sel ast.SelectionSet, ob
 
 // region    ***************************** type.gotpl *****************************
 
-func unmarshalNBoolean2bool(ctx context.Context, ec *executionContext, v any) (bool, error) {
-	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalNBoolean2bool(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalBoolean(v)
@@ -3436,20 +3431,6 @@ func marshalNString2string(ctx context.Context, ec *executionContext, sel ast.Se
 	return res
 }
 
-func unmarshalNString2ᚕstringᚄ(ctx context.Context, ec *executionContext, v any) ([]string, error) {
-	vSlice := graphql.CoerceList(v)
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = unmarshalNString2string(ctx, ec, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
 func marshalNString2ᚕstringᚄ(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []string) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	for i := range v {
@@ -3511,11 +3492,6 @@ func marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintros
 	return ret
 }
 
-func unmarshalN__DirectiveLocation2string(ctx context.Context, ec *executionContext, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalN__DirectiveLocation2string(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
@@ -3525,20 +3501,6 @@ func marshalN__DirectiveLocation2string(ctx context.Context, ec *executionContex
 		}
 	}
 	return res
-}
-
-func unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, ec *executionContext, v any) ([]string, error) {
-	vSlice := graphql.CoerceList(v)
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = unmarshalN__DirectiveLocation2string(ctx, ec, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func marshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []string) graphql.Marshaler {
@@ -3615,11 +3577,6 @@ func marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospecti
 	return ___Type(ctx, ec, sel, v)
 }
 
-func unmarshalN__TypeKind2string(ctx context.Context, ec *executionContext, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalN__TypeKind2string(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
@@ -3648,24 +3605,6 @@ func unmarshalOBoolean2ᚖbool(ctx context.Context, ec *executionContext, v any)
 		return nil, nil
 	}
 	res, err := graphql.UnmarshalBoolean(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func marshalOBoolean2ᚖbool(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v *bool) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	_ = sel
-	_ = ctx
-	res := graphql.MarshalBoolean(*v)
-	return res
-}
-
-func unmarshalODate2ᚖstring(ctx context.Context, ec *executionContext, v any) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -3721,25 +3660,6 @@ func unmarshalORole2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserver�
 	return res, nil
 }
 
-func marshalORole2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModelᚄ(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []RoleModel) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
-		fc := graphql.GetFieldContext(ctx)
-		fc.Result = &v[i]
-		return marshalNRole2githubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModel(ctx, ec, sel, v[i])
-	})
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func unmarshalORole2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModel(ctx context.Context, ec *executionContext, v any) (*RoleModel, error) {
 	if v == nil {
 		return nil, nil
@@ -3749,63 +3669,13 @@ func unmarshalORole2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserver�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func marshalORole2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModel(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v *RoleModel) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	_ = sel
-	_ = ctx
-	res := graphql.MarshalString(marshalORole2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModelF[*v])
-	return res
-}
-
 var (
 	unmarshalORole2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModelF = map[string]RoleModel{
 		"ADMIN": RoleModelAdmin,
 		"USER":  RoleModelUser,
 		"GUEST": RoleModelGuest,
 	}
-	marshalORole2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋcodegenᚋtestserverᚋusefunctionsyntaxforexecutioncontextᚐRoleModelF = map[RoleModel]string{
-		RoleModelAdmin: "ADMIN",
-		RoleModelUser:  "USER",
-		RoleModelGuest: "GUEST",
-	}
 )
-
-func unmarshalOString2ᚕstringᚄ(ctx context.Context, ec *executionContext, v any) ([]string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	vSlice := graphql.CoerceList(v)
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = unmarshalNString2string(ctx, ec, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func marshalOString2ᚕstringᚄ(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = marshalNString2string(ctx, ec, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
 
 func unmarshalOString2ᚖstring(ctx context.Context, ec *executionContext, v any) (*string, error) {
 	if v == nil {

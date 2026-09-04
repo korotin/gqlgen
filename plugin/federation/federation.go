@@ -515,7 +515,7 @@ func (f *Federation) GenerateCode(data *codegen.Data) error {
 			}
 
 			for _, r := range e.Resolvers {
-				populateKeyFieldTypes(r, obj, data.Objects, e.Def.Name)
+				populateKeyFieldTypes(data, r, obj, e.Def.Name)
 			}
 
 			// fill in types for requires fields
@@ -537,6 +537,12 @@ func (f *Federation) GenerateCode(data *codegen.Data) error {
 
 				cgField := reqField.Field.TypeReference(obj, data.Objects)
 				reqField.Type = cgField.TypeReference
+				if !reqField.Computed {
+					// The reference was resolved from an output field, but federation
+					// reads a non-computed @requires field back out of the entity
+					// representation. A computed one is delivered by a field resolver.
+					data.RequireUnmarshal(reqField.Type)
+				}
 			}
 			// add type info to entity
 			e.Type = obj.Type
@@ -642,9 +648,9 @@ func containsUnionField(reqField *Requires) bool {
 
 // Fill in types for key fields
 func populateKeyFieldTypes(
+	data *codegen.Data,
 	resolver *EntityResolver,
 	obj *codegen.Object,
-	allObjects codegen.Objects,
 	name string,
 ) {
 	for _, keyField := range resolver.KeyFields {
@@ -654,8 +660,11 @@ func populateKeyFieldTypes(
 			)
 			continue
 		}
-		cgField := keyField.Field.TypeReference(obj, allObjects)
+		cgField := keyField.Field.TypeReference(obj, data.Objects)
 		keyField.Type = cgField.TypeReference
+		// The reference was resolved from an output field, but federation
+		// unmarshals @key fields out of the entity representation.
+		data.RequireUnmarshal(keyField.Type)
 	}
 }
 

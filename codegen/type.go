@@ -30,10 +30,30 @@ func processType(ret map[string]*config.TypeReference, ref *config.TypeReference
 				),
 			)
 		}
+		// References sharing a key produce a single pair of marshal functions, so
+		// the stored one has to cover every position any of them is reached from.
+		ref.Directions |= existing.Directions
 	}
 	ret[key] = ref
 
 	if ref.IsSlice() || ref.IsPtrToSlice() || ref.IsPtrToPtr() || ref.IsPtrToIntf() {
 		processType(ret, ref.Elem())
+	}
+}
+
+// RequireUnmarshal marks ref as reached from an input position, both on ref
+// itself and on the reference the generator emits functions for. A plugin that
+// unmarshals a reference it borrowed from an output position (federation reads
+// @key and @requires fields back out of an entity representation) must call it
+// from GenerateCode, or the unmarshaler it calls will not be generated.
+func (d *Data) RequireUnmarshal(ref *config.TypeReference) {
+	for ; ref != nil; ref = ref.Elem() {
+		ref.Directions |= config.RefInput
+		if stored := d.ReferencedTypes[ref.UniquenessKey()]; stored != nil {
+			stored.Directions |= config.RefInput
+		}
+		if !ref.IsSlice() && !ref.IsPtrToSlice() && !ref.IsPtrToPtr() && !ref.IsPtrToIntf() {
+			return
+		}
 	}
 }

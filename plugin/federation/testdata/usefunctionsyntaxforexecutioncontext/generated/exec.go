@@ -5920,11 +5920,6 @@ func ___Type(ctx context.Context, ec *executionContext, sel ast.SelectionSet, ob
 
 // region    ***************************** type.gotpl *****************************
 
-func unmarshalNBoolean2bool(ctx context.Context, ec *executionContext, v any) (bool, error) {
-	res, err := graphql.UnmarshalBoolean(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalNBoolean2bool(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v bool) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalBoolean(v)
@@ -6133,23 +6128,6 @@ func unmarshalN_Any2map(ctx context.Context, ec *executionContext, v any) (map[s
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func marshalN_Any2map(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-		return graphql.Null
-	}
-	_ = sel
-	res := graphql.MarshalMap(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
-}
-
 func unmarshalN_Any2ᚕmapᚄ(ctx context.Context, ec *executionContext, v any) ([]map[string]any, error) {
 	vSlice := graphql.CoerceList(v)
 	var err error
@@ -6164,21 +6142,6 @@ func unmarshalN_Any2ᚕmapᚄ(ctx context.Context, ec *executionContext, v any) 
 	return res, nil
 }
 
-func marshalN_Any2ᚕmapᚄ(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []map[string]any) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = marshalN_Any2map(ctx, ec, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func marshalN_Entity2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederationᚋfedruntimeᚐEntity(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []fedruntime.Entity) graphql.Marshaler {
 	ret := graphql.MarshalSliceConcurrently(ctx, len(v), 0, false, func(ctx context.Context, i int) graphql.Marshaler {
 		fc := graphql.GetFieldContext(ctx)
@@ -6187,22 +6150,6 @@ func marshalN_Entity2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederation�
 	})
 
 	return ret
-}
-
-func unmarshalN_FieldSet2string(ctx context.Context, ec *executionContext, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func marshalN_FieldSet2string(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v string) graphql.Marshaler {
-	_ = sel
-	res := graphql.MarshalString(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
-		}
-	}
-	return res
 }
 
 func marshalN_Service2githubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederationᚋfedruntimeᚐService(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v fedruntime.Service) graphql.Marshaler {
@@ -6229,11 +6176,6 @@ func marshalN__Directive2ᚕgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintros
 	return ret
 }
 
-func unmarshalN__DirectiveLocation2string(ctx context.Context, ec *executionContext, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalN__DirectiveLocation2string(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
@@ -6243,20 +6185,6 @@ func marshalN__DirectiveLocation2string(ctx context.Context, ec *executionContex
 		}
 	}
 	return res
-}
-
-func unmarshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, ec *executionContext, v any) ([]string, error) {
-	vSlice := graphql.CoerceList(v)
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = unmarshalN__DirectiveLocation2string(ctx, ec, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
 }
 
 func marshalN__DirectiveLocation2ᚕstringᚄ(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v []string) graphql.Marshaler {
@@ -6333,11 +6261,6 @@ func marshalN__Type2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospecti
 	return ___Type(ctx, ec, sel, v)
 }
 
-func unmarshalN__TypeKind2string(ctx context.Context, ec *executionContext, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalN__TypeKind2string(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	res := graphql.MarshalString(v)
@@ -6367,16 +6290,6 @@ func unmarshalOBoolean2ᚖbool(ctx context.Context, ec *executionContext, v any)
 	}
 	res, err := graphql.UnmarshalBoolean(v)
 	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func marshalOBoolean2ᚖbool(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v *bool) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	_ = sel
-	_ = ctx
-	res := graphql.MarshalBoolean(*v)
-	return res
 }
 
 func marshalOHello2ᚖgithubᚗcomᚋ99designsᚋgqlgenᚋpluginᚋfederationᚋtestdataᚋusefunctionsyntaxforexecutioncontextᚋgeneratedᚋmodelᚐHello(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v *model.Hello) graphql.Marshaler {
@@ -6526,24 +6439,11 @@ func unmarshalOMultiPlanetRequiresNestedByNamesInput2ᚖgithubᚗcomᚋ99designs
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func unmarshalOString2string(ctx context.Context, ec *executionContext, v any) (string, error) {
-	res, err := graphql.UnmarshalString(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func marshalOString2string(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v string) graphql.Marshaler {
 	_ = sel
 	_ = ctx
 	res := graphql.MarshalString(v)
 	return res
-}
-
-func unmarshalOString2ᚖstring(ctx context.Context, ec *executionContext, v any) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalString(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func marshalOString2ᚖstring(ctx context.Context, ec *executionContext, sel ast.SelectionSet, v *string) graphql.Marshaler {

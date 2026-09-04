@@ -235,22 +235,28 @@
 		}
 	{{- end }}
 
-	{{- if and $type.HasEnumValues (not $type.IsSlice) }}
+	{{- /* The lookup maps are named after the functions that read them, so each one
+	   is emitted only alongside the direction that was generated above. */ -}}
+	{{- if and $type.HasEnumValues (not $type.IsSlice) (or $type.UnmarshalFunc $type.MarshalFunc) }}
 	{{- $enum := $type.GO }}
 	{{- if $type.IsNilable }}
 		{{- $enum = $type.GO.Elem }}
 	{{- end }}
 	var (
+		{{- with $type.UnmarshalFunc }}
 		{{ ($type.EnumUnmarshalVar $.Config.UseFunctionSyntaxForExecutionContext) }} = map[string]{{ $enum | ref }}{
 		{{- range $value := $type.EnumValues }}
 			"{{ $value.Definition.Name }}": {{ $value.Object | obj }},
 		{{- end }}
 		}
+		{{- end }}
+		{{- with $type.MarshalFunc }}
 		{{ ($type.EnumMarshalVar $.Config.UseFunctionSyntaxForExecutionContext) }} = map[{{ $enum | ref }}]string{
 		{{- range $value := $type.EnumValues }}
 			 {{ $value.Object | obj }}: "{{ $value.Definition.Name }}",
 		{{- end }}
 		}
+		{{- end }}
 	 )
 	{{- end }}
 {{- end }}
