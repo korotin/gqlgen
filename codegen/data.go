@@ -46,6 +46,13 @@ type Data struct {
 
 	// cachedBatchFieldTypes is populated on first use by batchFieldTypes.
 	cachedBatchFieldTypes map[string]bool
+
+	// allBlockingTypes is the schema-wide result of collectBlockingTypes, set
+	// like allBatchFieldTypes.
+	allBlockingTypes map[string]bool
+
+	// cachedBlockingTypes is populated on first use by blockingTypes.
+	cachedBlockingTypes map[string]bool
 }
 
 func (d *Data) HasEmbeddableSources() bool {
@@ -103,6 +110,76 @@ func (d *Data) HasBatchFields(typeName string) bool {
 // HasBatchResolverFields reports whether any type in the schema uses a batch resolver.
 func (d *Data) HasBatchResolverFields() bool {
 	return len(d.batchFieldTypes()) > 0
+}
+
+// collectBlockingTypes returns the names of the output types whose
+// marshalling may wait on user code: an object with a field resolved
+// concurrently (see [Field.IsConcurrent]) or through a field directive, an
+// object with a field of such a type, and an interface or union with such
+// an implementor.
+func collectBlockingTypes(schema *ast.Schema, objects Objects) map[string]bool {
+	names := make(map[string]bool)
+	for _, obj := range objects {
+		for _, field := range obj.Fields {
+			if field.IsConcurrent() || field.HasDirectives() {
+				names[obj.Name] = true
+				break
+			}
+		}
+	}
+	for changed := true; changed; {
+		changed = false
+		for _, def := range schema.Types {
+			if names[def.Name] {
+				continue
+			}
+			blocking := false
+			switch def.Kind {
+			case ast.Object:
+				for _, f := range def.Fields {
+					if names[f.Type.Name()] {
+						blocking = true
+						break
+					}
+				}
+			case ast.Interface, ast.Union:
+				for _, impl := range schema.GetPossibleTypes(def) {
+					if names[impl.Name] {
+						blocking = true
+						break
+					}
+				}
+			}
+			if blocking {
+				names[def.Name] = true
+				changed = true
+			}
+		}
+	}
+	return names
+}
+
+// blockingTypes returns collectBlockingTypes for the whole schema, computing
+// it on first use for the same reason as batchFieldTypes.
+func (d *Data) blockingTypes() map[string]bool {
+	if d.allBlockingTypes != nil {
+		return d.allBlockingTypes
+	}
+	if d.cachedBlockingTypes == nil {
+		d.cachedBlockingTypes = collectBlockingTypes(d.Schema, d.Objects)
+	}
+	return d.cachedBlockingTypes
+}
+
+// MayBlock reports whether marshalling a value of the named output type may
+// wait on user code, so that list elements of the type are worth marshalling
+// concurrently. A schema with a FIELD directive may have it run on any field
+// a query selects, so then every type may block.
+func (d *Data) MayBlock(typeName string) bool {
+	if len(d.AllDirectives.LocationDirectives(string(ast.LocationField))) > 0 {
+		return true
+	}
+	return d.blockingTypes()[typeName]
 }
 
 // BatchImplementors returns the implementors of the named interface or union whose concrete

@@ -154,7 +154,20 @@ func TestMarshalSliceConcurrently(t *testing.T) {
 // list when elements are non-null. The rest of the list is kept.
 func TestMarshalSliceConcurrentlyNullsElementsItCouldNotMarshal(t *testing.T) {
 	t.Parallel()
+	testMarshalSliceNullsElementsItCouldNotMarshal(t, MarshalSliceConcurrently)
+}
 
+// MarshalSliceSequentially reports the same results and errors as
+// MarshalSliceConcurrently.
+func TestMarshalSliceSequentiallyNullsElementsItCouldNotMarshal(t *testing.T) {
+	t.Parallel()
+	testMarshalSliceNullsElementsItCouldNotMarshal(t, MarshalSliceSequentially)
+}
+
+func testMarshalSliceNullsElementsItCouldNotMarshal(
+	t *testing.T,
+	marshalSlice func(context.Context, int, int64, bool, func(context.Context, int) Marshaler) Array,
+) {
 	cases := map[string]struct {
 		length      int
 		workerLimit int64
@@ -219,7 +232,7 @@ func TestMarshalSliceConcurrentlyNullsElementsItCouldNotMarshal(t *testing.T) {
 
 			done := make(chan Array, 1)
 			go func() {
-				done <- MarshalSliceConcurrently(ctx, tc.length, tc.workerLimit, false,
+				done <- marshalSlice(ctx, tc.length, tc.workerLimit, false,
 					func(_ context.Context, i int) Marshaler { return tc.marshal(cancel, i) })
 			}()
 
@@ -227,7 +240,7 @@ func TestMarshalSliceConcurrentlyNullsElementsItCouldNotMarshal(t *testing.T) {
 			select {
 			case ret = <-done:
 			case <-time.After(5 * time.Second):
-				t.Fatal("deadlock: MarshalSliceConcurrently did not return")
+				t.Fatal("deadlock: marshalSlice did not return")
 			}
 
 			require.Len(t, ret, tc.length, "every element keeps its slot")
@@ -242,4 +255,26 @@ func TestMarshalSliceConcurrentlyNullsElementsItCouldNotMarshal(t *testing.T) {
 			assert.Equal(t, tc.wantErrors, gotErrors)
 		})
 	}
+}
+
+func TestMarshalSliceSequentially(t *testing.T) {
+	ctx := withTestResponseContext(context.Background())
+	var order []int
+	ret := MarshalSliceSequentially(ctx, 3, 0, false, func(ctx context.Context, i int) Marshaler {
+		order = append(order, i)
+		fc := GetFieldContext(ctx)
+		require.NotNil(t, fc)
+		assert.Equal(t, i, *fc.Index)
+		return MarshalString(fmt.Sprintf("item-%d", i))
+	})
+	assert.Equal(t, []int{0, 1, 2}, order)
+	var b bytes.Buffer
+	ret.MarshalGQL(&b)
+	assert.JSONEq(t, `["item-0", "item-1", "item-2"]`, b.String())
+
+	assert.Panics(t, func() {
+		MarshalSliceSequentially(ctx, 2, 0, true, func(ctx context.Context, i int) Marshaler {
+			panic("test panic")
+		})
+	})
 }

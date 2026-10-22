@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 
 	"github.com/99designs/gqlgen/codegen/config"
@@ -257,4 +258,76 @@ func TestData_BatchImplementors(t *testing.T) {
 	// empty type switch would not compile.
 	assert.Empty(t, d.BatchImplementors("Empty"))
 	assert.Empty(t, d.BatchImplementors("NotAnInterface"))
+}
+
+func TestData_MayBlock(t *testing.T) {
+	schema := gqlparser.MustLoadSchema(&ast.Source{Input: `
+		type Query { users: [User!]! }
+		type User { name: String! posts: [Post!]! friend: User pet: Pet }
+		type Post { title: String! comments: [Comment!]! }
+		type Comment { text: String! }
+		type Tag { label: String! }
+		interface Pet { name: String! }
+		type Dog implements Pet { name: String! owner: Owner }
+		type Cat implements Pet { name: String! }
+		type Owner { name: String! }
+		union Item = Tag | Comment
+	`})
+	// Comment.text is resolved by a resolver; Owner.name runs a directive.
+	resolvers := map[string]bool{"Comment.text": true}
+	directives := map[string]bool{"Owner.name": true}
+
+	var objects Objects
+	for _, def := range schema.Types {
+		if def.Kind != ast.Object || def.BuiltIn {
+			continue
+		}
+		obj := &Object{Definition: def}
+		for _, fd := range def.Fields {
+			f := &Field{
+				FieldDefinition: fd,
+				Object:          obj,
+				IsResolver:      resolvers[def.Name+"."+fd.Name],
+			}
+			if directives[def.Name+"."+fd.Name] {
+				f.Directives = []*Directive{
+					{
+						DirectiveDefinition: &ast.DirectiveDefinition{
+							Locations: []ast.DirectiveLocation{ast.LocationFieldDefinition},
+						},
+					},
+				}
+			}
+			obj.Fields = append(obj.Fields, f)
+		}
+		objects = append(objects, obj)
+	}
+	d := Data{Schema: schema, Objects: objects}
+
+	cases := map[string]bool{
+		"Comment": true,  // has a resolver
+		"Post":    true,  // reaches Comment
+		"User":    true,  // reaches Post
+		"Owner":   true,  // has a field directive
+		"Dog":     true,  // reaches Owner
+		"Pet":     true,  // an implementor blocks
+		"Item":    true,  // a member blocks
+		"Cat":     false, // only plain fields
+		"Tag":     false,
+		"String":  false,
+	}
+	for typeName, want := range cases {
+		t.Run(typeName, func(t *testing.T) {
+			assert.Equal(t, want, d.MayBlock(typeName))
+		})
+	}
+
+	// A FIELD directive may be applied to any selected field.
+	d.AllDirectives = DirectiveList{"log": {
+		DirectiveDefinition: &ast.DirectiveDefinition{
+			Name:      "log",
+			Locations: []ast.DirectiveLocation{ast.LocationField},
+		},
+	}}
+	assert.True(t, d.MayBlock("Tag"))
 }

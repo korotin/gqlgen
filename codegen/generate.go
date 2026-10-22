@@ -142,6 +142,7 @@ func addBuild(filename string, p *ast.Position, data *Data, builds *map[string]*
 		// whose implementors are spread across files would only register batch parents
 		// for the implementors that happen to share the interface's file.
 		allBatchFieldTypes: data.batchFieldTypes(),
+		allBlockingTypes:   data.blockingTypes(),
 	}
 }
 

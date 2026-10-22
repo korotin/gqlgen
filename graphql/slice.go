@@ -106,3 +106,51 @@ func MarshalSliceConcurrently(
 	wg.Wait()
 	return ret
 }
+
+// MarshalSliceSequentially marshals a slice of elements one after another on
+// the calling goroutine. Generated code calls it instead of
+// [MarshalSliceConcurrently] for lists whose elements resolve no field
+// through a resolver, a method taking a context or a field directive: such
+// an element cannot wait on I/O, so a goroutine per element only adds the
+// cost of starting it and growing its stack.
+//
+// The result, the errors and the handling of panics and of workerLimit are
+// those of [MarshalSliceConcurrently].
+func MarshalSliceSequentially(
+	ctx context.Context,
+	length int,
+	workerLimit int64,
+	omitPanicHandler bool,
+	marshalElement func(ctx context.Context, i int) Marshaler,
+) Array {
+	ret := make(Array, length)
+	for i := range length {
+		fc := &FieldContext{
+			Index: &i,
+		}
+		childCtx := WithFieldContext(ctx, fc)
+		// With a workerLimit, MarshalSliceConcurrently fails to acquire a
+		// worker for an element once ctx is done.
+		if workerLimit > 0 && length > 1 && ctx.Err() != nil {
+			AddError(childCtx, ctx.Err())
+			for j := i; j < length; j++ {
+				ret[j] = Null
+			}
+			break
+		}
+		if omitPanicHandler {
+			ret[i] = marshalElement(childCtx, i)
+			continue
+		}
+		func() {
+			defer func() {
+				if r := recover(); r != nil {
+					AddError(childCtx, Recover(childCtx, r))
+					ret[i] = Null
+				}
+			}()
+			ret[i] = marshalElement(childCtx, i)
+		}()
+	}
+	return ret
+}
