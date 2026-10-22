@@ -73,6 +73,7 @@ func MarshalSliceConcurrently(
 		childCtx := WithFieldContext(ctx, fc)
 
 		f := func(i int) {
+			growStack()
 			defer wg.Done()
 			if sm != nil {
 				defer sm.Release(1)
@@ -106,3 +107,24 @@ func MarshalSliceConcurrently(
 	wg.Wait()
 	return ret
 }
+
+// growStack makes the runtime grow the calling goroutine's stack to 8 KiB
+// while the goroutine is still shallow.
+//
+// A goroutine starts with a 2 KiB stack and marshalling an element through a
+// few levels of fields needs 3-8 KiB, so without this the runtime grows the
+// stack once or twice deep inside the field resolvers. Each growth copies the
+// stack and decodes the metadata of every frame on it, 15-25 of them there;
+// here it decodes three. The frame of growStack is large enough that the
+// runtime allocates 8 KiB in one step.
+//
+//go:noinline
+func growStack() {
+	var buf [4 << 10]byte
+	keepOnStack(buf[:])
+}
+
+// keepOnStack keeps the compiler from dropping the array growStack reserves.
+//
+//go:noinline
+func keepOnStack([]byte) {}
